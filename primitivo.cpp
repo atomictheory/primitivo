@@ -39,6 +39,7 @@ void main(int argc, char** argv)
 	do
 	{
 		std::cin.getline(buf,100);
+
 		if(buf[0]=='x'){do_exit=True;}
 		else
 		{

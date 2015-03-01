@@ -329,7 +329,9 @@ void Position::print()
 		<< endl 
 		<< "material balance " << calc_material_balance() << endl
 		<< "attackers on white king " << attackers_on_king(WHITE) << endl
+		<< "white king in check? ( assuming black's turn ) " << (int)is_in_check(WHITE) << endl
 		<< "attackers on black king " << attackers_on_king(BLACK) << endl
+		<< "black king in check? ( assuming white's turn ) " << (int)is_in_check(BLACK) << endl
 		<< "mobility white " << number_of_pseudo_legal_moves(WHITE) << endl
 		<< "mobility black " << number_of_pseudo_legal_moves(BLACK) << endl
 		<< "heuristic value " << calc_heuristic_eval() << endl
@@ -798,12 +800,21 @@ void Position::next_legal_move()
 
 		make_move(current_pseudo_legal_move);
 
+		Bool is_in_check_old=is_in_check(old.turn);
+		Bool is_exploded_turn=is_exploded(turn);
+		Bool is_exploded_old=is_exploded(old.turn);
+
 		legal=
 			// a move is legal if the side making it is not in check after making the move
-			(!is_in_check(old.turn))
+			(!is_in_check_old)
 			||
 			// or if the opponent exploded without the side making the move exploding
-			( (is_exploded(turn)) && (!is_exploded(old.turn)) );
+			( (is_exploded_turn) && (!is_exploded_old) );
+
+		if(legal)
+		{
+			is_in_check_old=is_in_check(old.turn);
+		}
 
 		if(adjacent_kings())
 		{
@@ -959,6 +970,8 @@ Bool Position::is_in_check(Color c)
 		}
 		else
 		{
+
+			if(move_table[start_ptr].type & END_VECTOR){start_ptr++;goto examine_check;}
 
 			look_for_next_vector:
 
