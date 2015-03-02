@@ -139,6 +139,7 @@ struct Move
 	MoveDetail info;
 
 	int eval;
+	Depth depth;
 	Bool done;
 
 	void print(Bool);
@@ -154,6 +155,8 @@ extern Move move_table[BOARD_SIZE*NUM_PIECES*50];
 extern void init_move_table();
 
 extern int nodes;
+extern int total_used;
+extern int collisions;
 
 #define HASH_TABLE_SHIFT (17)
 #define HASH_TABLE_SIZE (1 << HASH_TABLE_SHIFT)

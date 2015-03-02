@@ -178,6 +178,7 @@ void main(int argc, char** argv)
 			{
 				ofstream o("hash.txt",ios::binary);
 				o.write((char*)&hash_table,sizeof(hash_table));
+				o.write((char*)&total_used,sizeof(int));
 				o.close();
 				cout << "hash table saved" << endl;
 			}
@@ -186,6 +187,7 @@ void main(int argc, char** argv)
 			{
 				ifstream i("hash.txt",ios::binary);
 				i.read((char*)&hash_table,sizeof(hash_table));
+				i.read((char*)&total_used,sizeof(int));
 				i.close();
 				cout << "hash table loaded" << endl;
 			}

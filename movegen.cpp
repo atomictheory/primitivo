@@ -34,6 +34,7 @@ void Position::init_move_iterator()
 void erase_hash_table()
 {
 	memset((void*)&hash_table,0,HASH_TABLE_SIZE*sizeof(HashTableEntry));
+	total_used=0;
 }
 
 void init_move_table()
@@ -357,7 +358,11 @@ void Position::print()
 		{
 			Move* m=book.next_move(turn);
 
-			cout << (i+1) << ". " << m->algeb()	<< " ( " << m->eval << " ) " << endl;
+			cout << (i+1) << ". " 
+				<< m->algeb()	
+				<< " ( " << m->eval << " ) " 
+				//<< " [ at depth " << (int)m->depth << " ]"
+				<< endl;
 		}
 
 		cout << endl;
@@ -1120,6 +1125,8 @@ void Position::make_move(Move m)
 int nodes;
 int tbhits;
 int phits;
+int total_used;
+int collisions;
 
 time_t ltime0;
 time_t ltime;
@@ -1284,28 +1291,15 @@ int Position::search_recursive(Depth depth,int alpha,int beta,Bool maximizing)
 			{
 				// update existing move always
 				old_eval=move_hit->eval;
-				move_hit->eval=eval;
+
+				if(depth<=move_hit->depth)
+				{
+					move_hit->eval=eval;
+					move_hit->depth=depth;
+				}
 			}
 
 			//////////////////////////////////////////////////////////////////////
-
-			line=old_line;
-
-			time( &ltime );int elapsed=(int)ltime-(int)ltime0;
-			float nodes_per_sec=elapsed>0?(float)nodes/(float)elapsed:0;
-
-			if(depth==0)
-			{
-				if(verbose)
-				{
-					cout << " ( ";
-					if(old_eval>(-MATE_SCORE-1))
-					{
-						cout << old_eval << " -> ";
-					}
-					cout << eval << " ) n " << nodes << " tm " << elapsed << " nps " << (int)nodes_per_sec << " phits " << phits << " tbhits " << tbhits << endl;
-				}
-			}
 
 			if(maximizing)
 			{
@@ -1335,13 +1329,57 @@ int Position::search_recursive(Depth depth,int alpha,int beta,Bool maximizing)
 					if(value<beta){beta=value;}
 				}
 			}
-			
+
+			//////////////////////////////////////////////////////////////////////
+
+			line=old_line;
+
+			time( &ltime );int elapsed=(int)ltime-(int)ltime0;
+			float nodes_per_sec=elapsed>0?(float)nodes/(float)elapsed:0;
+
+			if(depth==0)
+			{
+				if(verbose)
+				{
+					cout << " ( ";
+					if(old_eval>(-MATE_SCORE-1))
+					{
+						cout << old_eval << " -> ";
+					}
+					cout << eval 
+					<< " ) n " 	<< nodes 
+					<< " tm " << elapsed 
+					<< " nps " << (int)nodes_per_sec 
+					<< " used " << total_used
+					<< " coll " << collisions
+					<< " phits " << phits 
+					<< " tbhits " << tbhits 
+					<< endl;
+				}
+			}
+
+			/*if(old_eval>(-MATE_SCORE-1))
+			{
+				if((old_eval!=eval)&&(depth==0))
+				{
+					cout << "###############################" << endl;
+					print();
+					cout << "###############################" << endl;
+				}
+			}*/
+
+			//////////////////////////////////////////////////////////////////////
+						
 			if(beta<alpha)
 			{
 				return value;
 			}
 
+			//////////////////////////////////////////////////////////////////////
+
 			if(quit_search){return value;};
+
+			//////////////////////////////////////////////////////////////////////
 		}
 		
 	}while(move_available);
@@ -1355,6 +1393,7 @@ void Position::search()
 	nodes=0;
 	tbhits=0;
 	phits=0;
+	collisions=0;
 
 	init_move_iterator();
 
@@ -1434,10 +1473,14 @@ void Position::store_move(Move move,Depth depth,int eval,Bool maximizing)
 
 	calc_hash_key();
 
+	Bool first_used=False;
+
 	if(!hash_table[hash_key].used)
 	{
 		hash_table[hash_key].init();
 		hash_table[hash_key].depth=depth;
+		total_used++;
+		first_used=True;
 	}
 
 	if(depth<=hash_table[hash_key].depth)
@@ -1447,6 +1490,7 @@ void Position::store_move(Move move,Depth depth,int eval,Bool maximizing)
 		{
 			// overwrite other position
 			hash_table[hash_key].init();
+			if(!first_used){collisions++;}
 		}
 
 		memcpy((void*)&hash_table[hash_key].position,(void*)this,sizeof(PositionTrunk));
@@ -1454,6 +1498,7 @@ void Position::store_move(Move move,Depth depth,int eval,Bool maximizing)
 		hash_table[hash_key].depth=depth;
 
 		move.eval=eval;
+		move.depth=depth;
 
 		hash_table[hash_key].best_moves.add(move,maximizing);
 	}
