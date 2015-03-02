@@ -4,6 +4,8 @@ non bitboard atomic chess engine
 2) to start analyzing type i+ENTER ( i = infinite search )
 3) to quit analyzing type q+ENTER
 
+for more detailed instructions type help+ENTER
+
 Motivation
 
 Available atomic chess engines such as Pulsar and Atomkraft suffer from bugs. Pulsar's move generation is flawed when it comes to en passant captures. Atomkraft, which is a modification of Stockfish, crashes is certain positions. ( Also Pulsar allows castling in check. )

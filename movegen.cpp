@@ -325,13 +325,21 @@ void Position::print()
 	cout 
 		<< endl 
 		<< endl 
-		<< "turn " << side_to_move.c_str() << ", castling rights " << (int)castling_rights << ", ep square " << (int)ep_square
+		<< "turn: [" << side_to_move.c_str() 
+			<< "] , castling rights: [" 
+			<< (castling_rights&CASTLING_RIGHT_K?"K":"")
+			<< (castling_rights&CASTLING_RIGHT_Q?"Q":"")
+			<< (castling_rights&CASTLING_RIGHT_k?"k":"")
+			<< (castling_rights&CASTLING_RIGHT_q?"q":"")
+			<< "] , ep square: [" 
+			<< (ep_square&SQUARE_NONE?"":square_to_algeb(ep_square))
+			<< "]"
 		<< endl 
 		<< "material balance " << calc_material_balance() << endl
 		<< "attackers on white king " << attackers_on_king(WHITE) << endl
-		<< "white king in check? ( assuming black's turn ) " << (int)is_in_check(WHITE) << endl
+		//<< "white king in check? ( assuming black's turn ) " << (int)is_in_check(WHITE) << endl
 		<< "attackers on black king " << attackers_on_king(BLACK) << endl
-		<< "black king in check? ( assuming white's turn ) " << (int)is_in_check(BLACK) << endl
+		//<< "black king in check? ( assuming white's turn ) " << (int)is_in_check(BLACK) << endl
 		<< "mobility white " << number_of_pseudo_legal_moves(WHITE) << endl
 		<< "mobility black " << number_of_pseudo_legal_moves(BLACK) << endl
 		<< "heuristic value " << calc_heuristic_eval() << endl
@@ -1271,9 +1279,11 @@ int Position::search_recursive(Depth depth,int alpha,int beta,Bool maximizing)
 
 			Move* move_hit=look_up_move(try_move);
 
+			int old_eval=-MATE_SCORE-1;
 			if(move_hit!=NULL)
 			{
 				// update existing move always
+				old_eval=move_hit->eval;
 				move_hit->eval=eval;
 			}
 
@@ -1288,7 +1298,12 @@ int Position::search_recursive(Depth depth,int alpha,int beta,Bool maximizing)
 			{
 				if(verbose)
 				{
-					cout << " ( " << eval << " ) n " << nodes << " tm " << elapsed << " nps " << (int)nodes_per_sec << " phits " << phits << " tbhits " << tbhits << endl;
+					cout << " ( ";
+					if(old_eval>(-MATE_SCORE-1))
+					{
+						cout << old_eval << " -> ";
+					}
+					cout << eval << " ) n " << nodes << " tm " << elapsed << " nps " << (int)nodes_per_sec << " phits " << phits << " tbhits " << tbhits << endl;
 				}
 			}
 
@@ -1734,13 +1749,13 @@ Move* Position::look_up_move(Move m)
 		return NULL;
 	}
 
-	MoveList best_moves=entry->best_moves;
+	MoveList* best_moves=&entry->best_moves;
 
-	for(int i=0;i<best_moves.no_moves;i++)
+	for(int i=0;i<best_moves->no_moves;i++)
 	{
-		if(best_moves.move_list[i].equal_to(m))
+		if(best_moves->move_list[i].equal_to(m))
 		{
-			return(&best_moves.move_list[i]);
+			return(&best_moves->move_list[i]);
 		}
 	}
 
@@ -1793,4 +1808,17 @@ int Position::attackers_on_king(Color c)
 	}
 
 	return attackers;
+}
+
+char sq_to_algeb_puff[5];
+char* Position::square_to_algeb(Square sq)
+{
+	File f=FILE_OF(sq);
+	Rank r=RANK_OF(sq);
+
+	sq_to_algeb_puff[0]=f+'a';
+	sq_to_algeb_puff[1]=(BOARD_HEIGHT-1-r)+'1';
+	sq_to_algeb_puff[2]=0;
+
+	return sq_to_algeb_puff;
 }

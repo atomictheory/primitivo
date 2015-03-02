@@ -269,6 +269,8 @@ struct Position
 	char* score_of(int);
 	void report_search_results(MoveCount);
 
+	char* square_to_algeb(Square);
+
 	unsigned int hash_key;
 	unsigned int calc_hash_key();
 
