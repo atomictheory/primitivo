@@ -1,6 +1,8 @@
 #include "movegen.h"
 
 #include <iostream>
+#include <stdlib.h>
+#include <string.h>
 
 #include "xxhash.h"
 
@@ -154,7 +156,7 @@ void init_move_table()
 	}
 }
 
-void Position::set_from_fen(char* fen)
+void Position::set_from_fen(const char* fen)
 {
 	Square sq=0;
 	char f;
@@ -287,23 +289,23 @@ void Position::print()
 
 		if(FILE_OF(sq)==0)
 		{
-			cout << (char)(BOARD_HEIGHT-1-RANK_OF(sq)+'1') << "  ";
+			cout << (char)(BOARD_HEIGHT-1-RANK_OF(sq)+'1') << ' ';
 		}
 
 		if(p!=NO_PIECE)
 		{
 			if(p & WHITE_PIECE)
 			{
-				cout << piece_letters[p & ~WHITE_PIECE];
+				cout << ' ' << piece_letters[p & ~WHITE_PIECE];
 			}
 			else
 			{
-				cout << black_piece_letters[p];
+				cout << ' ' << black_piece_letters[p];
 			}
 		}
 		else
 		{
-			cout << ".";
+			cout << " .";
 		}
 
 		if(FILE_OF(sq)==FILE_MASK)
@@ -312,11 +314,11 @@ void Position::print()
 		}
 	}
 
-	cout << endl << "   ";
+	cout << endl << "  ";
 
 	for(File f=0;f<BOARD_WIDTH;f++)
 	{
-		cout << (char)(f+'a');
+		cout << ' ' << (char)(f+'a');
 	}
 
 	string side_to_move=(turn==WHITE?"white":"black");
@@ -892,7 +894,7 @@ char* Move::algeb()
 	return algeb_puff;
 }
 
-Square Position::algeb_to_square(char* algeb)
+Square Position::algeb_to_square(const char* algeb)
 {
 	if((algeb[0]<'a')||(algeb[0]>('a'+BOARD_WIDTH-1))){return SQUARE_NONE;}
 	if((algeb[1]<'1')||(algeb[1]>('1'+BOARD_HEIGHT-1))){return SQUARE_NONE;}
@@ -964,7 +966,7 @@ Bool Position::is_in_check(Color c)
 
 		Move test_move=move_table[start_ptr];
 
-		if(test_move.type & END_PIECE){goto piece_finished;}
+		if(test_move.type & END_PIECE){break;}
 
 		Piece query_piece=board[test_move.to_sq];
 
@@ -990,18 +992,13 @@ Bool Position::is_in_check(Color c)
 
 			start_ptr++;
 
-			if(move_table[start_ptr].type & END_PIECE){goto piece_finished;}
+			if(move_table[start_ptr].type & END_PIECE){break;}
 
 			if(move_table[start_ptr].type & END_VECTOR){start_ptr++;goto examine_check;}
 
 			goto look_for_next_vector;
 			
 		}
-
-		piece_finished:
-
-		int piece_done=1;
-
 	}
 
 	return False;
@@ -1310,7 +1307,7 @@ int Position::search_recursive(Depth depth,int alpha,int beta,Bool maximizing)
 					store_move(try_move,depth,eval,maximizing);
 				}
 
-				if(depth>=0)
+				//if(depth>=0) // depth is unsigned
 				{
 					if(value>alpha){alpha=value;}
 				}
@@ -1324,7 +1321,7 @@ int Position::search_recursive(Depth depth,int alpha,int beta,Bool maximizing)
 					store_move(try_move,depth,eval,maximizing);
 				}
 
-				if(depth>=0)
+				//if(depth>=0) // depth is unsigned
 				{
 					if(value<beta){beta=value;}
 				}
@@ -1408,20 +1405,30 @@ void Position::search()
 }
 
 char score_puff[30];
+#if defined _WIN64 || defined _WIN32
 char value_puff[20];
+#endif
 char* Position::score_of(int value)
 {
 	if(abs(value)<(MATE_SCORE-1000))
 	{
+#if defined _WIN64 || defined _WIN32
 		strcpy_s(score_puff,30,"cp ");
 		_itoa_s(value,value_puff,20,10);
 		strcat_s(score_puff,30,value_puff);
+#else
+		snprintf(score_puff,30,"cp %d",value);
+#endif
 		return score_puff;
 	}
 
+#if defined _WIN64 || defined _WIN32
 	_itoa_s(value>0?MATE_SCORE-value:-MATE_SCORE-value,value_puff,20,10);
 	strcpy_s(score_puff,30,"mate ");
 	strcat_s(score_puff,30,value_puff);
+#else
+	snprintf(score_puff,30,"mate %d",value>0?MATE_SCORE-value:-MATE_SCORE-value);
+#endif
 	return score_puff;
 }
 
@@ -1751,7 +1758,11 @@ char* Position::calc_principal_variation(MoveCount max_ply)
 				root=False;
 			}
 
+#if defined _WIN64 || defined _WIN32
 			strcpy_s(ptr,6,m->algeb());
+#else
+			strcpy(ptr,m->algeb());
+#endif
 			ptr+=strlen(m->algeb());
 			*ptr=' ';
 			ptr++;

@@ -2,7 +2,16 @@
 #define MOVEGEN_H
 #endif
 
+#if defined _WIN64 || defined _WIN32
 #include <time.h>
+#include <Windows.h>
+#include <process.h>
+#else
+#include <pthread.h>
+#include <string.h>
+#include <sys/time.h>
+#include <libsafec/safe_lib.h>
+#endif
 
 using namespace std;
 
@@ -211,7 +220,7 @@ extern int principal_value;
 
 struct Position
 {
-	char board[BOARD_SIZE];
+	Square board[BOARD_SIZE];
 
 	Turn turn;
 	
@@ -222,7 +231,7 @@ struct Position
 	Square black_king_pos;
 	Square white_king_pos;
 
-	char current_sq;
+	Square current_sq;
 	int current_ptr;
 	int pawn_status;
 	int castling_status;
@@ -249,8 +258,8 @@ struct Position
 	int heuristic_eval;
 	int calc_heuristic_eval();
 
-	Square algeb_to_square(char*);
-	void set_from_fen(char*);
+	Square algeb_to_square(const char*);
+	void set_from_fen(const char*);
 	void print();
 
 	Bool is_in_check(Color);

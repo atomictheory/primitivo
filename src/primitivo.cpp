@@ -3,9 +3,6 @@
 
 #include "movegen.h"
 
-#include <Windows.h>
-#include <process.h>
-
 using namespace std;
 
 char buf[100];
@@ -15,17 +12,20 @@ int game_ptr=0;
 
 Position p;
 
-void search_thread(void* param)
+void *search_thread(void *arg0)
 {
 	p.search();
+	return arg0;
 }
 
-void i_search_thread(void* param)
+void *i_search_thread(void *arg0)
 {
 	p.i_search();
+	return arg0;
 }
 
-void main(int argc, char** argv)
+//int main(int argc, char** argv)
+int main()
 {
 
 	init_move_table();
@@ -43,6 +43,7 @@ void main(int argc, char** argv)
 		if(buf[0]=='x'){do_exit=True;}
 		else
 		{
+#if defined _WIN64 || defined _WIN32
 			if(buf[0]=='f')
 			{
 				OpenClipboard(NULL);
@@ -54,6 +55,7 @@ void main(int argc, char** argv)
 				p.print();
 				game_ptr=0;
 			}
+#endif
 			if(buf[0]=='r')
 			{
 				game_ptr=0;
@@ -98,8 +100,12 @@ void main(int argc, char** argv)
 				char algeb[6];
 				if(buf[0]=='m')
 				{
-					strncpy_s(algeb,buf+1,5);
-					buf[5]=0;
+#if defined _WIN64 || defined _WIN32
+					strcpy_s(algeb,sizeof(&buf[1]),&buf[1]);
+					buf[5]='\0';
+#else
+					strcpy(algeb,&buf[1]);
+#endif
 				}
 				do
 				{
@@ -144,8 +150,12 @@ void main(int argc, char** argv)
 
 				quit_search=False;
 
+#if defined _WIN64 || defined _WIN32
 				_beginthread(search_thread,0,NULL);
-
+#else
+				pthread_t pool[1];
+				pthread_create(&pool[0],NULL,search_thread,NULL);
+#endif
 			}
 
 			if(buf[0]=='u')
@@ -160,7 +170,12 @@ void main(int argc, char** argv)
 			if(buf[0]=='i')
 			{
 				quit_search=False;
+#if defined _WIN64 || defined _WIN32
 				_beginthread(i_search_thread,0,NULL);
+#else
+				pthread_t pool[1];
+				pthread_create(&pool[0],NULL,i_search_thread,NULL);
+#endif
 			}
 
 			if(buf[0]=='q')
@@ -194,4 +209,5 @@ void main(int argc, char** argv)
 		}
 	}while(!do_exit);
 
+	return 0;
 }
