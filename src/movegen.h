@@ -164,7 +164,7 @@ extern Move move_table[BOARD_SIZE*NUM_PIECES*50];
 extern void init_move_table();
 
 extern int nodes;
-extern int total_used;
+extern int hash_used;
 extern int collisions;
 
 #define HASH_TABLE_SHIFT (17)
@@ -209,7 +209,7 @@ struct HashTableEntry
 
 extern HashTableEntry hash_table[HASH_TABLE_SIZE];
 
-extern void erase_hash_table();
+extern void clear_hash_table();
 
 extern Bool quit_search;
 

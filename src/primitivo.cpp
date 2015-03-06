@@ -38,9 +38,14 @@ int main()
 
 	do
 	{
+		if (quit_search)
+		{
+			cout << "command> ";
+			cout.flush();
+		}
 		std::cin.getline(buf,100);
 
-		if(buf[0]=='x'){do_exit=True;}
+		if(buf[0]=='q'||buf[0]=='x'){do_exit=True;}
 		else
 		{
 #if defined _WIN64 || defined _WIN32
@@ -66,34 +71,29 @@ int main()
 			{
 				p.print();
 			}
-			if(strcmp(buf,"help")==0)
+			if(buf[0]=='h')
 			{
 				cout << endl;
-				cout << "form of commmands: [one letter command][command argument]" << endl;
-				cout << endl;
-				cout << "commands:" << endl;
-				cout << endl;
+				cout << "Command usage: [one letter command][command argument]" << endl;
+				cout << "h: help" << endl;
 				cout << "r: reset board" << endl;
 				cout << "f: set board from fen on clipboard" << endl;
 				cout << "p: print board" << endl;
-				cout << "l: list legal moves" << endl;
+				cout << "d: display legal moves" << endl;
 				cout << "m[algeb]: make move given in algebraic notation ( example: 'me2e4' )" << endl;
 				cout << "u: unmake last move" << endl;
 				cout << "g[depth]: search to depth, possible values of depth = 1 ... 9 ( example: 'g6' )" << endl;
 				cout << "i: infinite search" << endl;
-				cout << "q: quit search" << endl;
+				cout << "t: terminate search" << endl;
 				cout << "s: save hash table" << endl;
-				cout << "h: load hash table" << endl;
-				cout << "e: erase hash table" << endl;
-				cout << endl;
-				cout << "x: exit" << endl;
-				cout << endl;
-				cout << "for this help type help+ENTER" << endl;
+				cout << "l: load hash table" << endl;
+				cout << "c: clear hash table" << endl;
+				cout << "q: quit (or x: exit)" << endl;
 				cout << endl;
 				buf[0]=0;
 				
 			}
-			if((buf[0]=='l')||(buf[0]=='m'))
+			if((buf[0]=='d')||(buf[0]=='m'))
 			{
 				Bool end_legal;
 				p.init_move_iterator();
@@ -178,14 +178,14 @@ int main()
 #endif
 			}
 
-			if(buf[0]=='q')
+			if(buf[0]=='t')
 			{
 				quit_search=True;
 			}
 
-			if(buf[0]=='e')
+			if(buf[0]=='c')
 			{
-				erase_hash_table();
+				clear_hash_table();
 				p.print();
 			}
 
@@ -193,16 +193,16 @@ int main()
 			{
 				ofstream o("hash.txt",ios::binary);
 				o.write((char*)&hash_table,sizeof(hash_table));
-				o.write((char*)&total_used,sizeof(int));
+				o.write((char*)&hash_used,sizeof(int));
 				o.close();
 				cout << "hash table saved" << endl;
 			}
 
-			if(buf[0]=='h')
+			if(buf[0]=='l')
 			{
 				ifstream i("hash.txt",ios::binary);
 				i.read((char*)&hash_table,sizeof(hash_table));
-				i.read((char*)&total_used,sizeof(int));
+				i.read((char*)&hash_used,sizeof(int));
 				i.close();
 				cout << "hash table loaded" << endl;
 			}

@@ -10,7 +10,7 @@ using namespace std;
 
 int material_values[MAX_PIECE];
 
-Bool quit_search;
+Bool quit_search=true;
 
 Bool verbose;
 
@@ -33,16 +33,15 @@ void Position::init_move_iterator()
 	castling_status=0;
 }
 
-void erase_hash_table()
+void clear_hash_table()
 {
-	memset((void*)&hash_table,0,HASH_TABLE_SIZE*sizeof(HashTableEntry));
-	total_used=0;
+	memset(hash_table,0,sizeof(hash_table));
+	hash_used=0;
 }
 
 void init_move_table()
 {
-
-	erase_hash_table();
+	clear_hash_table();
 	
 	material_values[WHITE|KNIGHT]=KNIGHT_VALUE;
 	material_values[WHITE|BISHOP]=BISHOP_VALUE;
@@ -346,6 +345,8 @@ void Position::print()
 		<< "mobility white " << number_of_pseudo_legal_moves(WHITE) << endl
 		<< "mobility black " << number_of_pseudo_legal_moves(BLACK) << endl
 		<< "heuristic value " << calc_heuristic_eval() << endl
+		<< "h: help" << endl
+		<< "q: quit" << endl
 		<< endl;
 
 	if(entry!=NULL)
@@ -1122,7 +1123,7 @@ void Position::make_move(Move m)
 int nodes;
 int tbhits;
 int phits;
-int total_used;
+int hash_used;
 int collisions;
 
 time_t ltime0;
@@ -1347,7 +1348,7 @@ int Position::search_recursive(Depth depth,int alpha,int beta,Bool maximizing)
 					<< " ) n " 	<< nodes 
 					<< " tm " << elapsed 
 					<< " nps " << (int)nodes_per_sec 
-					<< " used " << total_used
+					<< " used " << hash_used
 					<< " coll " << collisions
 					<< " phits " << phits 
 					<< " tbhits " << tbhits 
@@ -1486,7 +1487,7 @@ void Position::store_move(Move move,Depth depth,int eval,Bool maximizing)
 	{
 		hash_table[hash_key].init();
 		hash_table[hash_key].depth=depth;
-		total_used++;
+		hash_used++;
 		first_used=True;
 	}
 
