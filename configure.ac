@@ -1,6 +1,6 @@
 #                                               -*- Autoconf -*-
 # Process this file with autoconf to produce a configure script.
-AC_PREREQ([2.69])
+AC_PREREQ([2.63])
 AC_INIT([primitivo], [0.1])
 AM_INIT_AUTOMAKE([-Wall -Werror foreign])
 AC_CONFIG_SRCDIR([src/primitivo.cpp])
@@ -32,7 +32,7 @@ AC_FUNC_SELECT_ARGTYPES
 AC_FUNC_SETVBUF_REVERSED
 AC_TYPE_SIGNAL
 AC_FUNC_VPRINTF
-AC_CHECK_FUNCS([dup2 floor gettimeofday memchr memmove select strchr strdup strerror strstr])
+AC_CHECK_FUNCS([memchr memmove select strchr strdup strerror strstr snprintf])
 
 
 # We want to check for compiler flag support, but there is no way to make

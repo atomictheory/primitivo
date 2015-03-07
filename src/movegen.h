@@ -8,9 +8,9 @@
 #include <process.h>
 #else
 #include <pthread.h>
+#include <stdio.h>
 #include <string.h>
 #include <sys/time.h>
-#include <libsafec/safe_lib.h>
 #endif
 
 using namespace std;
