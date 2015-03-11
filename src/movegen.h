@@ -2,7 +2,16 @@
 #define MOVEGEN_H
 #endif
 
+#if defined _WIN64 || defined _WIN32
 #include <time.h>
+#include <Windows.h>
+#include <process.h>
+#else
+#include <pthread.h>
+#include <stdio.h>
+#include <string.h>
+#include <sys/time.h>
+#endif
 
 using namespace std;
 
@@ -155,7 +164,7 @@ extern Move move_table[BOARD_SIZE*NUM_PIECES*50];
 extern void init_move_table();
 
 extern int nodes;
-extern int total_used;
+extern int hash_used;
 extern int collisions;
 
 #define HASH_TABLE_SHIFT (17)
@@ -200,7 +209,7 @@ struct HashTableEntry
 
 extern HashTableEntry hash_table[HASH_TABLE_SIZE];
 
-extern void erase_hash_table();
+extern void clear_hash_table();
 
 extern Bool quit_search;
 
@@ -211,7 +220,7 @@ extern int principal_value;
 
 struct Position
 {
-	char board[BOARD_SIZE];
+	Square board[BOARD_SIZE];
 
 	Turn turn;
 	
@@ -222,7 +231,7 @@ struct Position
 	Square black_king_pos;
 	Square white_king_pos;
 
-	char current_sq;
+	Square current_sq;
 	int current_ptr;
 	int pawn_status;
 	int castling_status;
@@ -249,8 +258,8 @@ struct Position
 	int heuristic_eval;
 	int calc_heuristic_eval();
 
-	Square algeb_to_square(char*);
-	void set_from_fen(char*);
+	Square algeb_to_square(const char*);
+	void set_from_fen(const char*);
 	void print();
 
 	Bool is_in_check(Color);
